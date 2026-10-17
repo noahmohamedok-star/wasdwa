@@ -15,8 +15,13 @@ jobs:
           distribution: temurin
           java-version: 25
 
-      - name: Make gradlew executable
-        run: chmod +x gradlew
+      - name: Install Gradle (the wrapper jar may be missing from the repo)
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 9.6.1
+
+      - name: Regenerate wrapper
+        run: gradle wrapper --gradle-version 9.6.1 --no-daemon
 
       - name: Set active Minecraft version
         run: ./gradlew "Set active project to 26.2-fabric" --no-daemon
