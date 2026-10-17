@@ -10,30 +10,45 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Unzip the project
+        run: |
+          ls -la
+          unzip -q spatial-gui-custom.zip
+          ls spatial-gui-custom
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 25
 
-      - name: Install Gradle (the wrapper jar may be missing from the repo)
+      - name: Install Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: 9.6.1
 
       - name: Regenerate wrapper
+        working-directory: spatial-gui-custom
         run: gradle wrapper --gradle-version 9.6.1 --no-daemon
 
       - name: Set active Minecraft version
+        working-directory: spatial-gui-custom
         run: ./gradlew "Set active project to 26.2-fabric" --no-daemon
 
       - name: Build
+        working-directory: spatial-gui-custom
         run: ./gradlew :26.2-fabric:build --no-daemon
+
+      - name: Show jar contents
+        working-directory: spatial-gui-custom
+        run: |
+          ls -la versions/26.2-fabric/build/libs/
+          for j in versions/26.2-fabric/build/libs/*.jar; do echo "== $j"; unzip -l "$j" | grep -E "fabric.mod.json|mixins.json" || true; done
 
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
           name: spatial-gui-jar
           path: |
-            versions/26.2-fabric/build/libs/*.jar
-            !versions/26.2-fabric/build/libs/*-sources.jar
-            !versions/26.2-fabric/build/libs/*-dev.jar
+            spatial-gui-custom/versions/26.2-fabric/build/libs/*.jar
+            !spatial-gui-custom/versions/26.2-fabric/build/libs/*-sources.jar
+            !spatial-gui-custom/versions/26.2-fabric/build/libs/*-dev.jar
